@@ -644,7 +644,7 @@ The following are documented gaps. Contributions welcome.
 
 <div align="center">
 
-| 微信赞赏 | 支付宝赞赏 |
+| 微信赞赏 | 来自粉丝的小感动 |
 | --- | --- |
 | <img width="320" alt="微信赞赏" src="https://github.com/user-attachments/assets/83c101e7-2370-46e9-a840-cb506df98cf4" /> | <img width="320" alt="粉丝的鼓励" src="https://github.com/user-attachments/assets/0484300a-95e8-4cb3-ad73-478ba9bd19d6" /> |
 
