@@ -9,7 +9,7 @@ TOP AI CREW 顶尖AI人才联盟正式招募！
 <table>
   <tr>
     <td align="center">
-      <b>TOP AI CREW 顶尖AI人才联盟</b><br>
+      <b></b><br>
       <img width="400" alt="232c0c2e87d7e52eb9cebff6dea41382" src="https://github.com/user-attachments/assets/078bd8df-9715-413a-b243-3d1519c5936d" />
     </td>
     <td align="center">
