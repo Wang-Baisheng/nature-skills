@@ -6,12 +6,12 @@
   </p>
   <p>
     <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-2ea44f"></a>
-    <a href="#installation"><img alt="Install" src="https://img.shields.io/badge/install-Codex-111827"></a>
+    <a href="#installation"><img alt="Install" src="https://img.shields.io/badge/install-Claude%20Code%20%7C%20Codex-111827"></a>
     <a href="#skill-index"><img alt="Skills" src="https://img.shields.io/badge/skills-16-0ea5e9"></a>
     <a href="README.md"><img alt="Language" src="https://img.shields.io/badge/language-English%20%7C%20中文-1f6feb"></a>
   </p>
   <p>
-    <a href="#installation"><strong>Install</strong></a>
+    <a href="#installation">Install</a>
     · <a href="#skill-index">Skill Index</a>
     · <a href="#shared-design-principles">Design Principles</a>
     · <a href="#adding-a-skill">Contributing</a>
@@ -98,6 +98,83 @@
 such as `nature-*`; `skills/_shared/` contains shared content and should also be
 kept when installing the complete repository.
 
+### Claude Code Installation
+
+Claude Code cannot use `scripts/update-codex-skills.sh` directly because that
+script only syncs skills into Codex's `~/.codex/skills/`. For Claude Code, keep a
+stable local clone and create a subagent or slash command wrapper that points to
+the real `skills/*/SKILL.md`. This preserves the skill directory structure and
+lets the workflow keep using `references/`, `static/`, `manifest.yaml`, scripts,
+assets, and `skills/_shared/`.
+
+If Claude Code is not installed yet:
+
+```bash
+npm install -g @anthropic-ai/claude-code
+claude
+```
+
+Clone the repository to a stable path:
+
+```bash
+mkdir -p ~/ai-skills
+cd ~/ai-skills
+git clone https://github.com/Yuan1z0825/nature-skills.git
+```
+
+Recommended method: create a Claude Code subagent wrapper for the skills you use
+often. Example for `nature-reader`:
+
+```bash
+mkdir -p ~/.claude/agents
+cat > ~/.claude/agents/nature-reader.md <<'EOF'
+---
+name: nature-reader
+description: Use for Chinese-English paper reading, figure-aware translation, and source-grounded paper notes.
+---
+
+When invoked, first read `~/ai-skills/nature-skills/skills/nature-reader/SKILL.md` and follow it as the governing workflow.
+Read supporting files from `~/ai-skills/nature-skills/skills/nature-reader/` and `~/ai-skills/nature-skills/skills/_shared/` only when needed.
+Do not replace this skill with a generic paper-reading response.
+EOF
+```
+
+Then start a new Claude Code session and ask for the subagent explicitly:
+
+```text
+Use the nature-reader subagent to turn this paper into a Chinese-English Markdown reader.
+```
+
+If you prefer a slash command, create a command wrapper instead:
+
+```bash
+mkdir -p ~/.claude/commands
+cat > ~/.claude/commands/nature-reader.md <<'EOF'
+Read `~/ai-skills/nature-skills/skills/nature-reader/SKILL.md` first and follow it strictly.
+Read directly needed supporting files from `~/ai-skills/nature-skills/skills/nature-reader/` and `~/ai-skills/nature-skills/skills/_shared/`.
+
+$ARGUMENTS
+EOF
+```
+
+Use it inside Claude Code:
+
+```text
+/nature-reader Turn this paper into a full Chinese-English side-by-side Markdown reader.
+```
+
+To install other skills, replace `nature-reader` with the target directory name,
+such as `nature-polishing`, `nature-writing`, `nature-reviewer`,
+`nature-response`, or `nature-figure`. To update later:
+
+```bash
+cd ~/ai-skills/nature-skills
+git pull
+```
+
+As long as the wrapper still points to this stable clone path, no repeated file
+copy is needed.
+
 ### Recommended Codex Installation
 
 Use the repository script to install or update Codex skills. It syncs every
@@ -156,22 +233,6 @@ If the skill needs shared files, install skills/_shared as well.
 Key rule: keep the full directory structure. Many skills depend on
 `references/`, `static/`, `manifest.yaml`, scripts, assets, or shared files.
 
-### Manual Installation
-
-Manual copy is not recommended. If you do not want to run the script, copy every
-top-level directory under `skills/`:
-
-```bash
-git clone https://github.com/Yuan1z0825/nature-skills.git
-cd nature-skills
-mkdir -p ~/.codex/skills
-for d in skills/*/; do
-  name="${d%/}"
-  name="${name##*/}"
-  rsync -a --delete "$d" "$HOME/.codex/skills/$name/"
-done
-```
-
 The installer does not install Python dependencies automatically. Install them
 only when you need the corresponding scripts or MCP services:
 
@@ -214,13 +275,13 @@ skills/
     └── references/...
 ```
 
-### Non-Codex Scenarios
+### Other Agent Scenarios
 
-For Claude Code or other agents, keep a stable repository clone and create a
-lightweight subagent, slash command, or custom prompt wrapper that points to the
-real `skills/*/SKILL.md` files. Preserve `skills/_shared/`.
+For other agents, keep a stable repository clone and create a lightweight
+subagent, slash command, or custom prompt wrapper that points to the real
+`skills/*/SKILL.md` files. Preserve `skills/_shared/`.
 
-For manual or non-Codex use:
+For manual or other-agent use:
 
 1. Copy complete skill directories into your prompt library or project.
 2. Preserve `SKILL.md`, `manifest.yaml`, `static/`, `references/`, scripts,
@@ -239,7 +300,7 @@ The current `skills/` directory contains the following triggerable skills.
 
 | Skill | Status | Purpose | Example Triggers |
 |---|---|---|---|
-| [`nature-figure`](skills/nature-figure/README.md) | Stable | Submission-grade Python or R scientific figure workflow for Nature / high-impact journals, with a figures4papers-style demo | "Nature figure", "submission-grade figure", "publication plot", "scientific figure", "figures4papers" |
+| [`nature-figure`](skills/nature-figure/README.md) | Stable | Submission-grade Python or R scientific figure workflow for Nature / high-impact journals, with a figures4papers-style demo and OpenRouter GPT Image 2 schematic-draft generation | "Nature figure", "submission-grade figure", "publication plot", "scientific figure", "figures4papers", "paper schematic", "GPT Image 2" |
 | [`nature-polishing`](skills/nature-polishing/README.md) | Stable | Polish, restructure, or translate academic prose into Nature-style English | "Nature style", "polishing", "academic writing", "English manuscript" |
 | [`nature-writing`](skills/nature-writing/README.md) | Draft | Draft Nature-style manuscript sections and rebuild a paper argument | "Nature writing", "write an abstract", "write introduction", "manuscript draft", "paper writing" |
 | [`nature-reviewer`](skills/nature-reviewer/README.md) | Draft | Simulate Nature-style reviewer assessment from the reviewer perspective, returning three reviewer reports and a synthesis | "Nature reviewer", "pre-submission review", "reviewer report", "reviewer-perspective assessment" |

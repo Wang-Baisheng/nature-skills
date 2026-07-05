@@ -1,17 +1,17 @@
 <div align="center">
   <h1>Nature Skills</h1>
-  <p><strong>面向全球 AI 学者的科研 Skill 库</strong></p>
+  <p><strong>面向全球学者的科研 Skill 库</strong></p>
   <p>
     文献检索 · 论文精读 · Nature 写作 · 审稿模拟 · 图表制作 · 引用审计 · 返修回复
   </p>
   <p>
     <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-2ea44f"></a>
-    <a href="#安装"><img alt="Install" src="https://img.shields.io/badge/install-Codex-111827"></a>
+    <a href="#安装"><img alt="Install" src="https://img.shields.io/badge/install-Claude%20Code%20%7C%20Codex-111827"></a>
     <a href="#技能索引"><img alt="Skills" src="https://img.shields.io/badge/skills-16-0ea5e9"></a>
     <a href="README_EN.md"><img alt="Language" src="https://img.shields.io/badge/language-中文%20%7C%20English-1f6feb"></a>
   </p>
   <p>
-    <a href="#安装"><strong>立即安装</strong></a>
+    <a href="#安装">立即安装</a>
     · <a href="#技能索引">技能索引</a>
     · <a href="#共享设计原则">设计原则</a>
     · <a href="#新增技能">贡献方式</a>
@@ -64,6 +64,74 @@
 ## 安装
 
 `nature-skills` 是一组围绕 `SKILL.md` 组织的可复用技能包。`skills/` 下的每个顶层技能目录都是一个可安装单元，例如 `nature-*`；`skills/_shared/` 是共享内容目录，安装完整仓库时也需要保留。
+
+### Claude Code 安装方式
+
+Claude Code 不能直接使用 `scripts/update-codex-skills.sh`，因为这个脚本只负责同步到 Codex 的 `~/.codex/skills/`。用于 Claude Code 时，推荐保留一个稳定的本地 clone，再用 subagent 或 slash command 指向真实的 `skills/*/SKILL.md`。这样不会破坏技能目录结构，也能继续读取 `references/`、`static/`、`manifest.yaml`、脚本、资产和 `skills/_shared/`。
+
+如果还没有安装 Claude Code：
+
+```bash
+npm install -g @anthropic-ai/claude-code
+claude
+```
+
+先把仓库 clone 到一个稳定路径：
+
+```bash
+mkdir -p ~/ai-skills
+cd ~/ai-skills
+git clone https://github.com/Yuan1z0825/nature-skills.git
+```
+
+推荐方式：为常用技能创建 Claude Code subagent wrapper。以 `nature-reader` 为例：
+
+```bash
+mkdir -p ~/.claude/agents
+cat > ~/.claude/agents/nature-reader.md <<'EOF'
+---
+name: nature-reader
+description: Use for Chinese-English paper reading, figure-aware translation, and source-grounded paper notes.
+---
+
+When invoked, first read `~/ai-skills/nature-skills/skills/nature-reader/SKILL.md` and follow it as the governing workflow.
+Read supporting files from `~/ai-skills/nature-skills/skills/nature-reader/` and `~/ai-skills/nature-skills/skills/_shared/` only when needed.
+Do not replace this skill with a generic paper-reading response.
+EOF
+```
+
+然后开启新的 Claude Code 会话，直接请求使用这个 subagent：
+
+```text
+Use the nature-reader subagent to turn this paper into a Chinese-English Markdown reader.
+```
+
+如果你更喜欢 slash command，也可以创建命令 wrapper：
+
+```bash
+mkdir -p ~/.claude/commands
+cat > ~/.claude/commands/nature-reader.md <<'EOF'
+Read `~/ai-skills/nature-skills/skills/nature-reader/SKILL.md` first and follow it strictly.
+Read directly needed supporting files from `~/ai-skills/nature-skills/skills/nature-reader/` and `~/ai-skills/nature-skills/skills/_shared/`.
+
+$ARGUMENTS
+EOF
+```
+
+在 Claude Code 中使用：
+
+```text
+/nature-reader 把这篇论文做成中英文对照的完整 Markdown reader。
+```
+
+安装其他技能时，把示例中的 `nature-reader` 换成对应目录名即可，例如 `nature-polishing`、`nature-writing`、`nature-reviewer`、`nature-response` 或 `nature-figure`。后续更新只需要：
+
+```bash
+cd ~/ai-skills/nature-skills
+git pull
+```
+
+只要 wrapper 仍然指向这个稳定 clone 路径，就不需要重复复制技能文件。
 
 ### Codex 推荐安装方式
 
@@ -118,21 +186,6 @@ https://github.com/Yuan1z0825/nature-skills.git
 
 关键规则：保留完整目录结构。请复制或引用整个技能文件夹，而不是只复制 `SKILL.md`，因为许多技能依赖 `references/`、`static/`、`manifest.yaml`、脚本、资产或共享文件。
 
-### 手动安装
-
-不推荐手动复制；如果你确实不想运行脚本，请复制 `skills/` 下所有顶层目录，而不是只复制 `nature-*`：
-
-```bash
-git clone https://github.com/Yuan1z0825/nature-skills.git
-cd nature-skills
-mkdir -p ~/.codex/skills
-for d in skills/*/; do
-  name="${d%/}"
-  name="${name##*/}"
-  rsync -a --delete "$d" "$HOME/.codex/skills/$name/"
-done
-```
-
 安装脚本不会自动安装 Python 依赖。需要使用相关脚本或 MCP 服务时，再按需安装：
 
 ```bash
@@ -172,11 +225,11 @@ skills/
     └── references/...
 ```
 
-### 非 Codex 场景
+### 其他 agent 场景
 
-用于 Claude Code 或其他 agent 时，建议保留一个稳定的仓库 clone，再创建轻量 subagent、slash command 或 custom prompt wrapper，指向真实的 `skills/*/SKILL.md`，并保留 `skills/_shared/`。
+用于其他 agent 时，建议保留一个稳定的仓库 clone，再创建轻量 subagent、slash command 或 custom prompt wrapper，指向真实的 `skills/*/SKILL.md`，并保留 `skills/_shared/`。
 
-手动或非 Codex 使用时：
+手动或其他 agent 使用时：
 
 1. 将完整技能目录复制到你的 prompt library 或项目中。
 2. 保留 `SKILL.md`、`manifest.yaml`、`static/`、`references/`、脚本、资产和需要的 `skills/_shared/` 文件。
@@ -192,7 +245,7 @@ skills/
 
 | 技能 | 状态 | 用途 | 触发词 |
 |-------|--------|---------|-----------------|
-| [`nature-figure`](skills/nature-figure/README.md) | Stable | 面向 Nature / 高影响力期刊的 Python 或 R 投稿级科研图工作流，内置 figures4papers demo | “Nature figure”, “投稿级图片”, “publication plot”, “scientific figure”, “figures4papers” |
+| [`nature-figure`](skills/nature-figure/README.md) | Stable | 面向 Nature / 高影响力期刊的 Python 或 R 投稿级科研图工作流，内置 figures4papers demo，并支持通过 OpenRouter GPT Image 2 生成论文示意图草稿 | “Nature figure”, “投稿级图片”, “publication plot”, “scientific figure”, “figures4papers”, “论文示意图”, “GPT Image 2” |
 | [`nature-polishing`](skills/nature-polishing/README.md) | Stable | 将学术文本润色、重构或翻译为 Nature 风格英文 | “Nature style”, “润色”, “academic writing”, “论文英文” |
 | [`nature-writing`](skills/nature-writing/README.md) | Draft | 起草 Nature 风格手稿章节，并重建论文论证 | “Nature writing”, “写摘要”, “写引言”, “manuscript draft”, “论文写作” |
 | [`nature-reviewer`](skills/nature-reviewer/README.md) | Draft | 从审稿人视角模拟 Nature 风格评审，输出三份 reviewer reports 和综合意见 | “Nature reviewer”, “预投稿评审”, “reviewer report”, “审稿人视角评估” |
